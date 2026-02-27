@@ -8,7 +8,7 @@ type Message = {
 };
 
 type ChatUIProps = {
-  variant?: "light" | "dark";
+  variant?: "light" | "dark" | "embed";
 };
 
 const SESSION_KEY = "yjar_chat_session_id";
@@ -39,40 +39,39 @@ function initSessionId(): string | null {
 
 export default function ChatUI({ variant = "dark" }: ChatUIProps) {
   // state for "Neuer Chat"
-  const [sessionId, setSessionId] = useState<string | null>(() => initSessionId());
+  const [sessionId, setSessionId] = useState<string | null>(() =>
+    initSessionId()
+  );
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [botTyping, setBotTyping] = useState(false);
 
-
   const [lastUserMessage, setLastUserMessage] = useState<string | null>(null);
-
-  
 
   // Lead
   const [leadMode, setLeadMode] = useState(false);
   const [leadDone, setLeadDone] = useState(false);
   const [leadName, setLeadName] = useState("");
   const [leadEmail, setLeadEmail] = useState("");
-  const [leadPhone, setLeadPhone] = useState("");           
-  const [leadConsent, setLeadConsent] = useState(false);    
+  const [leadPhone, setLeadPhone] = useState("");
+  const [leadConsent, setLeadConsent] = useState(false);
   const [leadError, setLeadError] = useState<string | null>(null);
   const [leadLoading, setLeadLoading] = useState(false);
-  const [leadAskConfirm, setLeadAskConfirm] = useState(false); 
-  const [showLeadPrivacy, setShowLeadPrivacy] = useState(false); 
+  const [leadAskConfirm, setLeadAskConfirm] = useState(false);
+  const [showLeadPrivacy, setShowLeadPrivacy] = useState(false);
 
   // Support
   const [supportMode, setSupportMode] = useState(false);
   const [supportDone, setSupportDone] = useState(false);
   const [supportName, setSupportName] = useState("");
   const [supportEmail, setSupportEmail] = useState("");
-  const [supportPhone, setSupportPhone] = useState("");     
+  const [supportPhone, setSupportPhone] = useState("");
   const [supportConsent, setSupportConsent] = useState(false);
   const [supportError, setSupportError] = useState<string | null>(null);
   const [supportLoading, setSupportLoading] = useState(false);
-  const [showSupportPrivacy, setShowSupportPrivacy] = useState(false); 
+  const [showSupportPrivacy, setShowSupportPrivacy] = useState(false);
   const [feedbackSent, setFeedbackSent] = useState(false);
 
   // loading history
@@ -102,29 +101,26 @@ export default function ChatUI({ variant = "dark" }: ChatUIProps) {
     const text = input.trim();
     const normalized = text.toLowerCase();
 
-        // Letzte Bot-Nachricht holen
-        const lastAssistant =
-        [...messages].reverse().find((m) => m.role === "assistant")?.content || "";
-  
-      // Prüfen, ob Bot zuvor nach Kontaktdaten gefragt hat
-      const botAskedForContact =
-        /Kontaktdaten/i.test(lastAssistant) ||
-        (
-          /E-?Mail/i.test(lastAssistant) &&
-          /(Name|Namen|heißen|Kontaktaufnahme)/i.test(lastAssistant)
-        );
-  
+    // Letzte Bot-Nachricht holen
+    const lastAssistant =
+      [...messages].reverse().find((m) => m.role === "assistant")?.content || "";
+
+    // Prüfen, ob Bot zuvor nach Kontaktdaten gefragt hat
+    const botAskedForContact =
+      /Kontaktdaten/i.test(lastAssistant) ||
+      (/E-?Mail/i.test(lastAssistant) &&
+        /(Name|Namen|heißen|Kontaktaufnahme)/i.test(lastAssistant));
+
     // Typische "Ja"-Antworten des Nutzers
-    const userSaidYes =
-      [
-        "ja",
-        "ja.",
-        "ja!",
-        "ja bitte",
-        "ja, bitte",
-        "ja gerne",
-        "ja, gerne",
-      ].includes(normalized);
+    const userSaidYes = [
+      "ja",
+      "ja.",
+      "ja!",
+      "ja bitte",
+      "ja, bitte",
+      "ja gerne",
+      "ja, gerne",
+    ].includes(normalized);
 
     // Falls Bot nach Kontaktdaten gefragt hat und User "ja" schreibt,
     // Lead-Bestätigung (Ja/Nein-Block) erzwingen
@@ -136,7 +132,6 @@ export default function ChatUI({ variant = "dark" }: ChatUIProps) {
     setInput("");
     setLoading(true);
     setBotTyping(true);
-
 
     try {
       const res = await fetch("/api/chat", {
@@ -185,7 +180,6 @@ export default function ChatUI({ variant = "dark" }: ChatUIProps) {
     }
   }
 
-
   async function hashId(id: string) {
     const bytes = new TextEncoder().encode(id);
     const digest = await crypto.subtle.digest("SHA-256", bytes);
@@ -214,9 +208,6 @@ export default function ChatUI({ variant = "dark" }: ChatUIProps) {
     try {
       const hash = await hashId(sessionId);
 
-           
-    
-
       // Letzte User-Nachricht für den Titel finden
       const lastUser =
         [...messages].reverse().find((m) => m.role === "user")?.content ||
@@ -228,26 +219,26 @@ export default function ChatUI({ variant = "dark" }: ChatUIProps) {
         "Lead: " +
         (lastUser ? lastUser.slice(0, 80) : "Neue Anfrage über Website");
 
-     // Lead zusätzlich als Ticket an n8n/Asana senden
-     await fetch("/api/leads", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sessionIdHash: hash,
-        name: leadName.trim(),
-        email: leadEmail.trim(),
-        phone: leadPhone.trim() || null,
-        message: lastUserMessage,
-        lastMessages: messages.map((m) => {
-          const prefix = m.role === "user" ? "User" : "Bot";
-          return `${prefix}: ${m.content}`;
+      // Lead zusätzlich als Ticket an n8n/Asana senden
+      await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionIdHash: hash,
+          name: leadName.trim(),
+          email: leadEmail.trim(),
+          phone: leadPhone.trim() || null,
+          message: lastUserMessage,
+          lastMessages: messages.map((m) => {
+            const prefix = m.role === "user" ? "User" : "Bot";
+            return `${prefix}: ${m.content}`;
+          }),
+          ticketTitle,
+          url: typeof window !== "undefined" ? window.location.href : null,
+          consent: leadConsent,
+          type: "lead",
         }),
-        ticketTitle,
-        url: typeof window !== "undefined" ? window.location.href : null,
-        consent: leadConsent,
-        type: "lead", 
-      }),
-    });
+      });
 
       setLeadDone(true);
       setLeadMode(false);
@@ -256,8 +247,7 @@ export default function ChatUI({ variant = "dark" }: ChatUIProps) {
         ...p,
         {
           role: "assistant",
-          content:
-            "Vielen Dank! Unser Team meldet sich schnellstmöglich bei Ihnen.",
+          content: "Vielen Dank! Unser Team meldet sich schnellstmöglich bei Ihnen.",
         },
       ]);
     } catch (err) {
@@ -322,26 +312,24 @@ export default function ChatUI({ variant = "dark" }: ChatUIProps) {
         .map((m) => `${m.role === "user" ? "User" : "Bot"}: ${m.content}`);
 
       // Aktuelle URL der Seite (optional)
-      const currentUrl =
-        typeof window !== "undefined" ? window.location.href : null;
+      const currentUrl = typeof window !== "undefined" ? window.location.href : null;
 
-        await fetch("/api/support", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionIdHash: hash,
-            name: supportName.trim(),
-            email: supportEmail.trim() || null,
-            phone: supportPhone.trim() || null,
-            message: lastUserMessage,
-            lastMessages: lastMessagesPayload,
-            url: currentUrl,
-            ticketTitle,
-            consent: supportConsent,
-            type: "support", 
-          }),
-        });
-  
+      await fetch("/api/support", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionIdHash: hash,
+          name: supportName.trim(),
+          email: supportEmail.trim() || null,
+          phone: supportPhone.trim() || null,
+          message: lastUserMessage,
+          lastMessages: lastMessagesPayload,
+          url: currentUrl,
+          ticketTitle,
+          consent: supportConsent,
+          type: "support",
+        }),
+      });
 
       setSupportDone(true);
       setSupportMode(false);
@@ -369,8 +357,7 @@ export default function ChatUI({ variant = "dark" }: ChatUIProps) {
       const hash = await hashId(sessionId);
 
       const lastAssistant =
-        [...messages].reverse().find((m) => m.role === "assistant")
-          ?.content || null;
+        [...messages].reverse().find((m) => m.role === "assistant")?.content || null;
 
       const lastUser =
         [...messages].reverse().find((m) => m.role === "user")?.content ||
@@ -393,7 +380,6 @@ export default function ChatUI({ variant = "dark" }: ChatUIProps) {
       console.error("Feedback error", err);
     }
   }
-
 
   function handleLeadConfirmYes() {
     setLeadAskConfirm(false);
@@ -420,7 +406,6 @@ export default function ChatUI({ variant = "dark" }: ChatUIProps) {
       },
     ]);
   }
-
 
   // voll neue chat mit neue session_id
   function handleNewChat() {
@@ -457,14 +442,20 @@ export default function ChatUI({ variant = "dark" }: ChatUIProps) {
   }
 
   const isDark = variant === "dark";
+  const isEmbed = variant === "embed";
 
-  const containerClasses =
-    `w-full max-w-md mx-auto p-4 flex flex-col gap-3 rounded-xl ` +
-    (isDark ? "bg-slate-800 text-slate-50" : "bg-white text-black");
+  // DE: Embed = Full-Bleed ohne max-width/padding/rounded (Iframe kontrolliert den Rahmen)
+  const containerClasses = isEmbed
+    ? `h-full w-full flex flex-col gap-3 ` + (isDark ? "bg-slate-800 text-slate-50" : "bg-white text-black")
+    : `w-full max-w-md mx-auto p-4 flex flex-col gap-3 rounded-xl ` +
+      (isDark ? "bg-slate-800 text-slate-50" : "bg-white text-black");
 
-  const chatBoxClasses =
-    `flex-1 min-h-[300px] max-h-[400px] overflow-y-auto rounded-lg p-3 space-y-2 text-sm ` +
-    (isDark ? "bg-slate-900" : "bg-gray-50");
+  // DE: Embed = Chat füllt den verfügbaren Raum im Iframe (kein künstliches max-height)
+  const chatBoxClasses = isEmbed
+    ? `flex-1 overflow-y-auto rounded-lg p-3 space-y-2 text-sm ` +
+      (isDark ? "bg-slate-900" : "bg-gray-50")
+    : `flex-1 min-h-[300px] max-h-[400px] overflow-y-auto rounded-lg p-3 space-y-2 text-sm ` +
+      (isDark ? "bg-slate-900" : "bg-gray-50");
 
   const inputClasses =
     "flex-1 rounded-lg px-3 py-2 border " +
@@ -523,7 +514,7 @@ export default function ChatUI({ variant = "dark" }: ChatUIProps) {
             </span>
           </div>
         ))}
-        
+
         {botTyping && (
           <div className="mt-1">
             <span className="inline-block bg-slate-700 text-white px-3 py-2 rounded-lg text-xs opacity-80">
@@ -539,9 +530,8 @@ export default function ChatUI({ variant = "dark" }: ChatUIProps) {
         )}
       </div>
 
-
-            {/* FEEDBACK – Daumen hoch / runter */}
-            {messages.length > 0 && !feedbackSent && (
+      {/* FEEDBACK – Daumen hoch / runter */}
+      {messages.length > 0 && !feedbackSent && (
         <div className="flex items-center justify-end gap-2 text-xs opacity-80">
           <span>Feedback:</span>
           <button
@@ -561,9 +551,8 @@ export default function ChatUI({ variant = "dark" }: ChatUIProps) {
         </div>
       )}
 
-
-            {/* LEAD CONFIRMATION (Ja/Nein) */}
-            {leadAskConfirm && !leadDone && (
+      {/* LEAD CONFIRMATION (Ja/Nein) */}
+      {leadAskConfirm && !leadDone && (
         <div className={formContainerClasses}>
           <p className="text-xs">
             Möchten Sie mit einem unserer Spezialisten sprechen? Wir können Ihre
@@ -587,7 +576,6 @@ export default function ChatUI({ variant = "dark" }: ChatUIProps) {
           </div>
         </div>
       )}
-
 
       {/* LEAD FORM */}
       {leadMode && !leadDone && (
@@ -622,7 +610,6 @@ export default function ChatUI({ variant = "dark" }: ChatUIProps) {
             />
 
             <label className="flex items-center gap-2 text-[11px] leading-snug">
-              {/* DSGVO Checkbox (Lead) */}
               <input
                 type="checkbox"
                 checked={leadConsent}
@@ -654,7 +641,6 @@ export default function ChatUI({ variant = "dark" }: ChatUIProps) {
             </button>
           </form>
 
-          {/* Modal für Datenschutz (Lead) */}
           {showLeadPrivacy && (
             <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
               <div
@@ -717,7 +703,6 @@ export default function ChatUI({ variant = "dark" }: ChatUIProps) {
         </>
       )}
 
-
       {/* SUPPORT FORM */}
       {supportMode && !supportDone && (
         <>
@@ -758,7 +743,6 @@ export default function ChatUI({ variant = "dark" }: ChatUIProps) {
             />
 
             <label className="flex items-center gap-2 text-[11px] leading-snug">
-              {/* DSGVO Checkbox Support */}
               <input
                 type="checkbox"
                 checked={supportConsent}
@@ -781,9 +765,7 @@ export default function ChatUI({ variant = "dark" }: ChatUIProps) {
               </span>
             </label>
 
-            {supportError && (
-              <div className="text-red-400">{supportError}</div>
-            )}
+            {supportError && <div className="text-red-400">{supportError}</div>}
 
             <button
               disabled={supportLoading}
@@ -793,7 +775,6 @@ export default function ChatUI({ variant = "dark" }: ChatUIProps) {
             </button>
           </form>
 
-          {/* Modal für Datenschutz (Support) */}
           {showSupportPrivacy && (
             <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
               <div
@@ -852,7 +833,6 @@ export default function ChatUI({ variant = "dark" }: ChatUIProps) {
           )}
         </>
       )}
-
 
       {/* INPUT */}
       <form onSubmit={sendMessage} className="flex gap-2">

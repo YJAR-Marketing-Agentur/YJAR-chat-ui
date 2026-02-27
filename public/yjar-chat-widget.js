@@ -83,7 +83,7 @@
       // Iframe mit der Widget-Seite
       var iframe = doc.createElement("iframe");
       iframe.id = "yjar-chat-widget-iframe";
-      iframe.src = "https://yjar-chat-ui.vercel.app/widget";
+      iframe.src = "https://yjar-chat-ui-jsfv.vercel.app/widget";
   
       iframe.style.border = "none";
       iframe.style.width = "100%";

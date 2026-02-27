@@ -4,27 +4,27 @@ import ChatUI from "@/components/ChatUI";
 
 export default function WidgetPage() {
   return (
-    <div
-      id="yjar-widget"
-      className="fixed inset-0 bg-black overflow-hidden"
-    >
-      {/* DE: Vollflächiger Chat ohne Page-Scroll */}
+    <div id="yjar-widget" className="fixed inset-0 overflow-hidden bg-transparent">
+      {/* DE: Full-Bleed im Iframe (keine eigene Karte, kein Außen-Scroll) */}
       <div className="h-full w-full flex flex-col">
-        <ChatUI variant="dark" />
+        <ChatUI variant="embed" />
       </div>
 
       {/* DE: Scrollbar Styling nur innerhalb des Widgets */}
       <style jsx global>{`
-        html, body {
+        html,
+        body {
           margin: 0;
           padding: 0;
+          height: 100%;
           overflow: hidden; /* DE: verhindert äußeren Scroll */
+          background: transparent;
         }
 
         /* === Nur der interne Chat-Scroll === */
         #yjar-widget .overflow-y-auto {
           scrollbar-width: thin;
-          scrollbar-color: rgba(120,150,200,0.4) transparent;
+          scrollbar-color: rgba(120, 150, 200, 0.4) transparent;
         }
 
         #yjar-widget .overflow-y-auto::-webkit-scrollbar {
