@@ -4,37 +4,44 @@ import ChatUI from "@/components/ChatUI";
 
 export default function WidgetPage() {
   return (
-    <div className="h-screen w-screen overflow-hidden bg-black">
-      {/* DE: Vollflächiger Chat ohne äußeren Page-Scroll */}
-      <div className="h-full w-full">
+    <div
+      id="yjar-widget"
+      className="fixed inset-0 bg-black overflow-hidden"
+    >
+      {/* DE: Vollflächiger Chat ohne Page-Scroll */}
+      <div className="h-full w-full flex flex-col">
         <ChatUI variant="dark" />
       </div>
 
-      {/* DE: Isoliertes Scrollbar-Styling nur für das Widget */}
+      {/* DE: Scrollbar Styling nur innerhalb des Widgets */}
       <style jsx global>{`
-        /* === Scrollbar Styling für Chat === */
-
-        .overflow-y-auto::-webkit-scrollbar {
-          width: 0.5px;
+        html, body {
+          margin: 0;
+          padding: 0;
+          overflow: hidden; /* DE: verhindert äußeren Scroll */
         }
 
-        .overflow-y-auto::-webkit-scrollbar-track {
+        /* === Nur der interne Chat-Scroll === */
+        #yjar-widget .overflow-y-auto {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(120,150,200,0.4) transparent;
+        }
+
+        #yjar-widget .overflow-y-auto::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        #yjar-widget .overflow-y-auto::-webkit-scrollbar-track {
           background: transparent;
         }
 
-        .overflow-y-auto::-webkit-scrollbar-thumb {
+        #yjar-widget .overflow-y-auto::-webkit-scrollbar-thumb {
           background: rgba(120, 150, 200, 0.4);
           border-radius: 10px;
         }
 
-        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+        #yjar-widget .overflow-y-auto::-webkit-scrollbar-thumb:hover {
           background: rgba(120, 150, 200, 0.7);
-        }
-
-        /* Firefox */
-        .overflow-y-auto {
-          scrollbar-width: thin;
-          scrollbar-color: rgba(120,150,200,0.4) transparent;
         }
       `}</style>
     </div>
